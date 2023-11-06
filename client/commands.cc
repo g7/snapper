@@ -206,6 +206,27 @@ command_create_single_snapshot_v2(DBus::Connection& conn, const string& config_n
 
 
 unsigned int
+command_create_empty_snapshot(DBus::Connection& conn, const string& config_name,
+			       const string& description, const string& cleanup,
+			       const map<string, string>& userdata)
+{
+    DBus::MessageMethodCall call(SERVICE, OBJECT, INTERFACE, "CreateEmptySnapshot");
+
+    DBus::Marshaller marshaller(call);
+    marshaller << config_name << description << cleanup << userdata;
+
+    DBus::Message reply = conn.send_with_reply_and_block(call);
+
+    unsigned int number;
+
+    DBus::Unmarshaller unmarshaller(reply);
+    unmarshaller >> number;
+
+    return number;
+}
+
+
+unsigned int
 command_create_single_snapshot_of_default(DBus::Connection& conn, const string& config_name,
 					  bool read_only, const string& description,
 					  const string& cleanup,

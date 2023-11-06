@@ -217,8 +217,14 @@ ProxySnapperDbus::queryFreeSpaceData() const
 ProxySnapshots::const_iterator
 ProxySnapperDbus::createSingleSnapshot(const SCD& scd)
 {
-    unsigned int num = command_create_single_snapshot(conn(), config_name, scd.description,
-						      scd.cleanup, scd.userdata);
+    unsigned int num;
+    if (scd.empty) {
+	num = command_create_empty_snapshot(conn(), config_name, scd.description,
+					   scd.cleanup, scd.userdata);
+    } else {
+	num = command_create_single_snapshot(conn(), config_name, scd.description,
+					     scd.cleanup, scd.userdata);
+    }
 
     proxy_snapshots.emplace_back(new ProxySnapshotDbus(&proxy_snapshots, num));
 

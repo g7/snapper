@@ -266,6 +266,14 @@ Client::introspect(DBus::Connection& conn, DBus::Message& msg)
 	"      <arg name='userdata' type='a{ss}' direction='in'/>\n"
 	"    </method>\n"
 
+	"    <method name='CreateEmptySnapshot'>\n"
+	"      <arg name='config-name' type='s' direction='in'/>\n"
+	"      <arg name='description' type='s' direction='in'/>\n"
+	"      <arg name='cleanup' type='s' direction='in'/>\n"
+	"      <arg name='userdata' type='a{ss}' direction='in'/>\n"
+	"      <arg name='number' type='u' direction='out'/>\n"
+	"    </method>\n"
+
 	"    <method name='CreateSingleSnapshot'>\n"
 	"      <arg name='config-name' type='s' direction='in'/>\n"
 	"      <arg name='description' type='s' direction='in'/>\n"
@@ -898,6 +906,41 @@ Client::set_snapshot(DBus::Connection& conn, DBus::Message& msg)
     conn.send(reply);
 
     signal_snapshot_modified(conn, config_name, snap->getNum());
+}
+
+
+void
+Client::create_empty_snapshot(DBus::Connection& conn, DBus::Message& msg)
+{
+    string config_name;
+    SCD scd;
+
+    DBus::Unmarshaller unmarshaller(msg);
+    unmarshaller >> config_name >> scd.description >> scd.cleanup >> scd.userdata;
+
+    y2deb("CreateSingleSnapshot config_name:" << config_name << " description:" << scd.description <<
+	  " cleanup:" << scd.cleanup);
+
+    boost::unique_lock<boost::shared_mutex> lock(big_mutex);
+
+    MetaSnappers::iterator it = meta_snappers.find(config_name);
+
+    check_permission(conn, msg, *it);
+    scd.uid = uid;
+    scd.empty = true;
+
+    Snapper* snapper = it->getSnapper();
+
+    Snapshots::iterator snap1 = snapper->createSingleSnapshot(scd);
+
+    DBus::MessageMethodReturn reply(msg);
+
+    DBus::Marshaller marshaller(reply);
+    marshaller << snap1->getNum();
+
+    conn.send(reply);
+
+    signal_snapshot_created(conn, config_name, snap1->getNum());
 }
 
 
@@ -1812,6 +1855,7 @@ Client::dispatch(DBus::Connection& conn, DBus::Message& msg)
 	{ "ListSnapshotsAtTime", &Client::list_snapshots_at_time },
 	{ "GetSnapshot", &Client::get_snapshot },
 	{ "SetSnapshot", &Client::set_snapshot },
+	{ "CreateEmptySnapshot", &Client::create_empty_snapshot },
 	{ "CreateSingleSnapshot", &Client::create_single_snapshot },
 	{ "CreateSingleSnapshotV2", &Client::create_single_snapshot_v2 },
 	{ "CreateSingleSnapshotOfDefault", &Client::create_single_snapshot_of_default },

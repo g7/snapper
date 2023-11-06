@@ -60,6 +60,11 @@ command_set_snapshot(DBus::Connection& conn, const string& config_name, unsigned
 		     const SMD& smd);
 
 unsigned int
+command_create_empty_snapshot(DBus::Connection& conn, const string& config_name,
+			      const string& description, const string& cleanup,
+			      const map<string, string>& userdata);
+
+unsigned int
 command_create_single_snapshot(DBus::Connection& conn, const string& config_name,
 			       const string& description, const string& cleanup,
 			       const map<string, string>& userdata);

@@ -96,6 +96,7 @@ public:
     void list_snapshots_at_time(DBus::Connection& conn, DBus::Message& msg);
     void get_snapshot(DBus::Connection& conn, DBus::Message& msg);
     void set_snapshot(DBus::Connection& conn, DBus::Message& msg);
+    void create_empty_snapshot(DBus::Connection& conn, DBus::Message& msg);
     void create_single_snapshot(DBus::Connection& conn, DBus::Message& msg);
     void create_single_snapshot_v2(DBus::Connection& conn, DBus::Message& msg);
     void create_single_snapshot_of_default(DBus::Connection& conn, DBus::Message& msg);

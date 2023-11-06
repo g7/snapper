@@ -54,6 +54,7 @@ namespace snapper
 	     << _("\t--read-only\t\t\tCreate read-only snapshot.") << '\n'
 	     << _("\t--read-write\t\t\tCreate read-write snapshot.") << '\n'
 	     << _("\t--from <number>\t\t\tCreate a snapshot from the specified snapshot.") << '\n'
+	     << _("\t--empty\t\t\t\tCreate an empty subvolume.") << '\n'
 	     << endl;
     }
 
@@ -79,7 +80,8 @@ namespace snapper
 	    Option("command",			required_argument),
 	    Option("read-only",			no_argument),
 	    Option("read-write",		no_argument),
-	    Option("from",			required_argument)
+	    Option("from",			required_argument),
+	    Option("empty",                     no_argument)
 	};
 
 	ParsedOpts opts = get_opts.parse("create", options);
@@ -136,6 +138,9 @@ namespace snapper
 	if ((opt = opts.find("from")) != opts.end())
 	    parent = snapshots.findNum(opt->second);
 
+	if ((opt = opts.find("empty")) != opts.end())
+	    scd.empty = true;
+
 	if (type == CreateType::POST && snapshot1 == snapshots.end())
 	{
 	    SN_THROW(OptionsException(_("Missing or invalid pre-number.")));
@@ -165,7 +170,10 @@ namespace snapper
 	switch (type)
 	{
 	    case CreateType::SINGLE: {
-		snapshot1 = snapper->createSingleSnapshot(parent, scd);
+		if (scd.empty)
+		    snapshot1 = snapper->createSingleSnapshot(scd);
+		else
+		    snapshot1 = snapper->createSingleSnapshot(parent, scd);
 		if (print_number)
 		    cout << snapshot1->getNum() << endl;
 	    } break;
